@@ -1,0 +1,88 @@
+dl wsl2 then ubuntu 
+to install ubuntu -> https://www.youtube.com/watch?v=zZf4YH4WiZo
+
+1. System update
+# get everything up to date
+sudo apt update && sudo apt upgrade -y
+
+# install core build tools & libs Odoo needs
+sudo apt install -y \
+    python3.12 python3.12-venv python3.12-dev \
+    build-essential git \
+    libjpeg-dev libpq-dev libxml2-dev libssl-dev libffi-dev libxslt1-dev \
+    zlib1g-dev libsasl2-dev libldap2-dev liblcms2-dev \
+    libmysqlclient-dev
+
+2. Node.js & Less (for asset compilation)
+# Node (in Ubuntu 22.04 repos it’s named nodejs)
+sudo apt install -y nodejs npm
+
+# create a `node` symlink if needed
+sudo ln -s /usr/bin/nodejs /usr/bin/node
+
+# install Less + Clean‑CSS plugin
+sudo npm install -g less less-plugin-clean-css
+
+3. wkhtmltopdf (reporting)
+# download & install the patched wkhtmltopdf binaries
+wget https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.5/wkhtmltox_0.12.5-1.bionic_amd64.deb
+sudo apt install -y ./wkhtmltox_0.12.5-1.bionic_amd64.deb
+rm wkhtmltox_0.12.5-1.bionic_amd64.deb
+
+
+4. PostgreSQL & Odoo DB user
+
+# install postgres
+sudo apt install -y postgresql postgresql-client
+
+# switch to postgres user to create Odoo role
+sudo su - postgres
+
+# create a role named "odoo18" with CREATEDB, prompt you for a password
+createuser --createdb --username postgres --no-createrole --no-superuser --pwprompt odoo18
+
+# within psql, grant superuser if you want (optional, but avoids permission headaches)
+psql -c "ALTER USER odoo18 WITH SUPERUSER;"
+
+# exit back to your UNIX user
+exit
+
+5. Get Odoo code & set up a Python venv
+
+# clone only the Odoo 18 community branch
+git clone https://github.com/odoo/odoo --depth 1 --branch 18.0 odoo18
+cd odoo18
+
+# bootstrap pip for Python 3.12
+curl -sS https://bootstrap.pypa.io/get-pip.py | python3.12 -
+
+# create & activate a venv
+python3.12 -m venv ~/odoo18-venv
+source ~/odoo18-venv/bin/activate
+
+# install all Python requirements
+pip install -r requirements.txt
+# if psycopg2 errors, run:
+#   pip install psycopg2-binary
+
+6. Create your odoo.conf
+In the odoo18 folder, create a file named odoo.conf with this content—replace:
+
+DB_PASSWORD_HERE → the password you set for odoo18
+
+/home/YOUR_UNIX_USER/... → your actual home path
+
+ini
+Copy
+Edit
+[options]
+admin_passwd = admin                ; or change to something else
+db_host = localhost
+db_port = 5432
+db_user = odoo18
+db_password = DB_PASSWORD_HERE
+addons_path = /home/YOUR_UNIX_USER/odoo18/addons
+xmlrpc_port = 8069
+
+7. Launch Odoo
+./odoo-bin -c odoo.conf
