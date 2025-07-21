@@ -25,6 +25,9 @@ sudo npm install -g less less-plugin-clean-css
 
 3. wkhtmltopdf (reporting)
 # download & install the patched wkhtmltopdf binaries
+wkhtmltopdf --version
+
+
 wget https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.5/wkhtmltox_0.12.5-1.bionic_amd64.deb
 sudo apt install -y ./wkhtmltox_0.12.5-1.bionic_amd64.deb
 rm wkhtmltox_0.12.5-1.bionic_amd64.deb
@@ -50,7 +53,7 @@ exit
 5. Get Odoo code & set up a Python venv
 
 # clone only the Odoo 18 community branch
-git clone https://github.com/odoo/odoo --depth 1 --branch 18.0 odoo18
+git clone https://github.com/odoo/odoo --depth 1 --branch 18.0 --single-branch
 cd odoo18
 
 # bootstrap pip for Python 3.12
